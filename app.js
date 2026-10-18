@@ -26,8 +26,9 @@
   };
   const STATE_ORDER = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'NT', 'ACT', 'TAS'];
 
-  // Ganz rausgezoomt deckend, ab ZOOM_CLEAR die eingestellte Mindest-Deckkraft.
-  const ZOOM_OPAQUE = 5;
+  // Ganz rausgezoomt 50 % Deckkraft, ab ZOOM_CLEAR die eingestellte Mindest-Deckkraft.
+  const MAX_FILL = 0.5;
+  const ZOOM_MAX_FILL = 5;
   const ZOOM_CLEAR = 15;
 
   // Unterhalb dieser Zoomstufe reicht die Übersichtsgeometrie (50 m Toleranz, kleiner als
@@ -46,7 +47,7 @@
   const settings = {
     codes: Array.isArray(saved.codes) ? saved.codes : [],
     colors: Object.assign({}, DEFAULT_COLORS, saved.colors || {}),
-    minOpacity: typeof saved.minOpacity === 'number' ? saved.minOpacity : 0.2,
+    minFill: typeof saved.minFill === 'number' ? saved.minFill : 0.1,
     googleKey: saved.googleKey || '',
     showDots: saved.showDots !== false,
     baseLayer: saved.baseLayer || 'Google Maps',
@@ -165,8 +166,9 @@
   // ---------- Transparenz nach Zoomstufe ----------
 
   function fillOpacityAt(zoom) {
-    const t = Math.min(1, Math.max(0, (zoom - ZOOM_OPAQUE) / (ZOOM_CLEAR - ZOOM_OPAQUE)));
-    return 1 - t * (1 - settings.minOpacity);
+    const t = Math.min(1, Math.max(0, (zoom - ZOOM_MAX_FILL) / (ZOOM_CLEAR - ZOOM_MAX_FILL)));
+    const min = Math.min(settings.minFill, MAX_FILL);
+    return MAX_FILL - t * (MAX_FILL - min);
   }
 
   function styleFor(state) {
@@ -376,7 +378,7 @@
           weight: 1,
           color: 'rgba(0,0,0,0.35)',
           fillColor: settings.colors[entry.state],
-          fillOpacity: 1,
+          fillOpacity: MAX_FILL,
         }).bindPopup(() => popupFor(code));
         entry.status = 'ok';
         sync(entry);
@@ -677,11 +679,11 @@
 
   const minOpacity = $('min-opacity');
   const minOpacityOut = $('min-opacity-out');
-  minOpacity.value = settings.minOpacity;
-  minOpacityOut.textContent = `${Math.round(settings.minOpacity * 100)} %`;
+  minOpacity.value = settings.minFill;
+  minOpacityOut.textContent = `${Math.round(settings.minFill * 100)} %`;
   minOpacity.oninput = () => {
-    settings.minOpacity = parseFloat(minOpacity.value);
-    minOpacityOut.textContent = `${Math.round(settings.minOpacity * 100)} %`;
+    settings.minFill = parseFloat(minOpacity.value);
+    minOpacityOut.textContent = `${Math.round(settings.minFill * 100)} %`;
     restyleAll();
   };
   minOpacity.onchange = saveSettings;
