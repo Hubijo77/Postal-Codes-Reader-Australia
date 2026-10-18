@@ -26,10 +26,11 @@
   };
   const STATE_ORDER = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'NT', 'ACT', 'TAS'];
 
-  // Ganz rausgezoomt 50 % Deckkraft, ab ZOOM_CLEAR die eingestellte Mindest-Deckkraft.
-  const MAX_FILL = 0.5;
-  const ZOOM_MAX_FILL = 5;
+  // Die Deckkraft stellt der Regler ein (gilt rausgezoomt). Beim Reinzoomen sinkt sie
+  // optional bis ZOOM_CLEAR auf ZOOM_FADE_RATIO davon, z. B. 50 % -> 10 %.
+  const ZOOM_FADE_START = 5;
   const ZOOM_CLEAR = 15;
+  const ZOOM_FADE_RATIO = 0.2;
 
   // Unterhalb dieser Zoomstufe reicht die Übersichtsgeometrie (50 m Toleranz, kleiner als
   // ein halber Bildschirmpixel). Ab hier werden für sichtbare Gebiete die vollen Grenzen geladen.
@@ -47,7 +48,8 @@
   const settings = {
     codes: Array.isArray(saved.codes) ? saved.codes : [],
     colors: Object.assign({}, DEFAULT_COLORS, saved.colors || {}),
-    minFill: typeof saved.minFill === 'number' ? saved.minFill : 0.1,
+    fill: typeof saved.fill === 'number' ? saved.fill : 0.5,
+    zoomFade: saved.zoomFade !== false,
     googleKey: saved.googleKey || '',
     showDots: saved.showDots !== false,
     baseLayer: saved.baseLayer || 'Google Maps',
@@ -166,9 +168,9 @@
   // ---------- Transparenz nach Zoomstufe ----------
 
   function fillOpacityAt(zoom) {
-    const t = Math.min(1, Math.max(0, (zoom - ZOOM_MAX_FILL) / (ZOOM_CLEAR - ZOOM_MAX_FILL)));
-    const min = Math.min(settings.minFill, MAX_FILL);
-    return MAX_FILL - t * (MAX_FILL - min);
+    if (!settings.zoomFade) return settings.fill;
+    const t = Math.min(1, Math.max(0, (zoom - ZOOM_FADE_START) / (ZOOM_CLEAR - ZOOM_FADE_START)));
+    return settings.fill * (1 - t * (1 - ZOOM_FADE_RATIO));
   }
 
   function styleFor(state) {
@@ -188,7 +190,7 @@
     for (const entry of entries.values()) {
       if (entry.ov) entry.ov.setStyle(styleFor(entry.state));
       if (entry.det) entry.det.setStyle(styleFor(entry.state));
-      if (entry.dot) entry.dot.setStyle({ fillColor: settings.colors[entry.state] });
+      if (entry.dot) entry.dot.setStyle({ fillColor: settings.colors[entry.state], fillOpacity: settings.fill });
     }
   }
   map.on('zoom', restyleAll);
@@ -378,7 +380,7 @@
           weight: 1,
           color: 'rgba(0,0,0,0.35)',
           fillColor: settings.colors[entry.state],
-          fillOpacity: MAX_FILL,
+          fillOpacity: settings.fill,
         }).bindPopup(() => popupFor(code));
         entry.status = 'ok';
         sync(entry);
@@ -677,16 +679,25 @@
   });
   map.on('locationerror', (e) => setStatus(`Standort nicht verfügbar: ${e.message}`, true));
 
-  const minOpacity = $('min-opacity');
-  const minOpacityOut = $('min-opacity-out');
-  minOpacity.value = settings.minFill;
-  minOpacityOut.textContent = `${Math.round(settings.minFill * 100)} %`;
-  minOpacity.oninput = () => {
-    settings.minFill = parseFloat(minOpacity.value);
-    minOpacityOut.textContent = `${Math.round(settings.minFill * 100)} %`;
+  const fillInput = $('fill');
+  const fillOut = $('fill-out');
+  const showFill = () => { fillOut.textContent = `${Math.round(settings.fill * 100)} %`; };
+  fillInput.value = settings.fill;
+  showFill();
+  fillInput.oninput = () => {
+    settings.fill = parseFloat(fillInput.value);
+    showFill();
     restyleAll();
   };
-  minOpacity.onchange = saveSettings;
+  fillInput.onchange = saveSettings;
+
+  const fadeInput = $('zoom-fade');
+  fadeInput.checked = settings.zoomFade;
+  fadeInput.onchange = () => {
+    settings.zoomFade = fadeInput.checked;
+    saveSettings();
+    restyleAll();
+  };
 
   const dotsInput = $('show-dots');
   dotsInput.checked = settings.showDots;

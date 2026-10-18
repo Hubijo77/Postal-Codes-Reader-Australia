@@ -23,9 +23,10 @@ zugehörigen Gebiete auf der Karte farbig nach Bundesstaat markieren.
   Bereich (`2000-2099`, auch `0200-9999` für alle).
   Bei Bereichen werden nur Postleitzahlen übernommen, die ein Gebiet haben.
   Postfach- und Firmen-PLZ ohne Gebiet werden gestrichelt angezeigt.
-- **Transparenz:** ganz rausgezoomt 50 % Deckkraft, beim Reinzoomen immer
-  transparenter bis 10 %, aber nie unsichtbar. Die Grenzlinie bleibt kräftig. Die
-  Mindest-Deckkraft lässt sich in den Einstellungen anpassen.
+- **Transparenz:** ein Regler im Panel stellt die Deckkraft für alle
+  Zoomstufen ein (Standard 50 %). Optional wird es beim Reinzoomen bis auf ein
+  Fünftel davon transparenter (z. B. 50 % → 10 %), aber nie unsichtbar. Die
+  Grenzlinie bleibt kräftig.
 - **Link kopieren:** erzeugt einen Link mit allen Postleitzahlen, z. B. um die
   Auswahl vom Laptop aufs Handy zu übertragen. Die Liste wird außerdem lokal im
   Browser gespeichert.

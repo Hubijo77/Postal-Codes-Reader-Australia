@@ -54,15 +54,19 @@
         <button type="button" id="btn-clear" class="ghost danger">Alle entfernen</button>
       </div>
 
+      <div class="opacity-control">
+        <label for="fill">Deckkraft <output id="fill-out" for="fill"></output></label>
+        <input type="range" id="fill" min="0.05" max="1" step="0.05">
+        <label class="fade-toggle">
+          <input type="checkbox" id="zoom-fade">
+          <span>Beim Reinzoomen transparenter werden (bis auf ein Fünftel)</span>
+        </label>
+      </div>
+
       <div id="groups" class="groups"></div>
 
       <details class="settings">
         <summary>Einstellungen</summary>
-        <div class="setting">
-          <label for="min-opacity">Deckkraft ganz reingezoomt: <output id="min-opacity-out"></output></label>
-          <input type="range" id="min-opacity" min="0.05" max="0.5" step="0.05">
-          <small>Ganz rausgezoomt liegt die Deckkraft bei 50 %.</small>
-        </div>
         <label class="setting check">
           <input type="checkbox" id="show-dots">
           <span>Sehr kleine Gebiete beim Rauszoomen zusätzlich als Punkt zeigen</span>

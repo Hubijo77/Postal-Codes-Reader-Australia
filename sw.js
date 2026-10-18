@@ -1,5 +1,5 @@
 // Service Worker: App offline-fähig machen und Postleitzahl-Geometrien zwischenspeichern.
-const VERSION = 'v3';
+const VERSION = 'v4';
 const SHELL = `plz-shell-${VERSION}`;
 const DATA = 'plz-data';
 const SHELL_FILES = [

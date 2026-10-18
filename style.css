@@ -192,6 +192,22 @@ button:hover, .btn:hover { background: var(--bg-soft); }
 .status { min-height: 1.4em; margin: 8px 0; color: var(--muted); font-size: 13px; }
 .status.error { color: var(--danger); }
 
+.opacity-control {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 6px 12px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 14px;
+}
+.opacity-control > label[for="fill"] { font-weight: 600; white-space: nowrap; }
+.opacity-control output { display: inline-block; min-width: 3.2em; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
+.opacity-control input[type="range"] { width: 100%; accent-color: var(--accent); }
+.fade-toggle { grid-column: 1 / -1; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--muted); }
+.fade-toggle input { margin-top: 2px; width: 16px; height: 16px; flex: none; }
 .toolbar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
 .ghost { background: transparent; font-size: 13px; padding: 6px 10px; }
 .ghost.danger { color: var(--danger); }
