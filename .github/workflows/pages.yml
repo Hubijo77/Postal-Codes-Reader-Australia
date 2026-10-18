@@ -1,0 +1,119 @@
+name: Seite bauen und veröffentlichen
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MAPSHAPER: mapshaper@0.6.121
+  # ABS Postal Areas 2021 (ASGS Edition 3), volle Detailstufe
+  ABS_BASE: https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Gebaute Postleitzahl-Daten aus dem Cache holen
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: build/data
+          key: poa-2021-${{ hashFiles('scripts/**', 'states.js', '.github/workflows/pages.yml') }}
+
+      - name: ABS-Grenzen herunterladen
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p build/raw && cd build/raw
+          ok=""
+          for f in POA_2021_AUST_GDA2020_SHP.zip POA_2021_AUST_SHP_GDA2020.zip POA_2021_AUST_GDA94_SHP.zip POA_2021_AUST_SHP_GDA94.zip; do
+            echo "Versuche $f"
+            if curl -fsSL --retry 3 -A "Mozilla/5.0" -o poa.zip "$ABS_BASE/$f"; then
+              if unzip -o -q poa.zip; then ok="$f"; break; fi
+            fi
+          done
+          if [ -n "$ok" ]; then
+            echo "Shapefile geladen: $ok"
+            ls -la
+            echo "SOURCE=shp" >> "$GITHUB_ENV"
+          else
+            echo "Shapefile nicht verfügbar, lade über den ABS-ArcGIS-Dienst"
+            node ../../scripts/fetch-abs-rest.mjs poa-raw.geojson
+            echo "SOURCE=rest" >> "$GITHUB_ENV"
+          fi
+
+      - name: Pro Postleitzahl eine Datei erzeugen
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: |
+          cd build/raw
+          if [ "$SOURCE" = "shp" ]; then
+            input=$(ls *.shp | head -n1)
+          else
+            input=poa-raw.geojson
+          fi
+          # Douglas-Peucker mit 1 m Toleranz: an jeder Zoomstufe deckungsgleich mit dem Original,
+          # gemeinsame Grenzen benachbarter Postleitzahlen bleiben lückenlos.
+          npx -y "$MAPSHAPER" "$input" -proj wgs84 \
+            -simplify dp interval=1 keep-shapes \
+            -o format=geojson precision=0.000001 poa.geojson
+          # Übersicht für niedrige Zoomstufen: 20 m Toleranz, dort kleiner als ein Pixel.
+          npx -y "$MAPSHAPER" poa.geojson \
+            -simplify dp interval=20 keep-shapes \
+            -o format=geojson precision=0.00001 poa-overview.geojson
+          node ../../scripts/build-data.mjs poa.geojson poa-overview.geojson ../data
+
+      - name: Daten prüfen
+        run: |
+          count=$(ls build/data/poa | wc -l)
+          echo "Postleitzahlen mit Gebiet: $count"
+          du -sh build/data
+          ls -S -l build/data/poa | head -n 6
+          test "$count" -gt 2500
+          test -s build/data/poa/2000.json
+          test -s build/data/poa/6000.json
+
+      - name: Seite zusammenstellen
+        run: |
+          mkdir -p _site
+          cp -r index.html app.js style.css states.js sw.js manifest.webmanifest icons _site/
+          cp -r build/data _site/data
+          touch _site/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Zusammenfassung
+        run: |
+          echo "Postleitzahlen: $(ls _site/data/poa | wc -l), Größe: $(du -sh _site/data | cut -f1)"
+          echo "Größte Dateien:"; ls -S -l _site/data/poa | sed -n 2,6p
+          echo "Übersicht:"; ls -l _site/data/overview
+          node -e "const f=require('./_site/data/poa/2000.json');console.log('Punkte in 2000:',JSON.stringify(f.geometry.coordinates).split('],[').length)"
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

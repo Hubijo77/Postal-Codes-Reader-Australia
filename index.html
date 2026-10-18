@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Australien PLZ-Karte</title>
+  <meta name="description" content="Australische Postleitzahlen auf Google Maps oder Organic Maps (OpenStreetMap) farbig nach Bundesstaat markieren.">
+  <meta name="theme-color" content="#14181f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PLZ-Karte">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="map" aria-label="Karte von Australien"></div>
+
+  <div class="map-buttons">
+    <button type="button" id="btn-locate" title="Mein Standort" aria-label="Mein Standort">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7" fill="none"/></svg>
+    </button>
+    <button type="button" id="btn-fit" title="Auf markierte PLZ zoomen" aria-label="Auf markierte PLZ zoomen">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none"/></svg>
+    </button>
+    <button type="button" id="btn-australia" title="Ganz Australien" aria-label="Ganz Australien zeigen">AU</button>
+    <a id="open-google" class="btn" target="_blank" rel="noopener" title="Ausschnitt in Google Maps öffnen">G</a>
+    <a id="open-organic" class="btn" target="_blank" rel="noopener" title="Ausschnitt in Organic Maps öffnen">OM</a>
+  </div>
+
+  <aside id="panel" class="panel">
+    <button type="button" class="panel-handle" id="panel-toggle" aria-expanded="true" aria-controls="panel-body">
+      <span class="handle-bar" aria-hidden="true"></span>
+      <span class="panel-title">Postleitzahlen <span id="count-badge" class="badge">0</span></span>
+      <span class="chevron" aria-hidden="true"></span>
+    </button>
+
+    <div class="panel-body" id="panel-body">
+      <form id="add-form" class="add-form">
+        <label for="plz-input" class="sr-only">Postleitzahlen</label>
+        <textarea id="plz-input" rows="2" inputmode="numeric" autocomplete="off"
+          placeholder="z. B. 2000, 3000 4000&#10;oder Bereich 2010-2020 – beliebig viele"></textarea>
+        <button type="submit" class="primary">Hinzufügen</button>
+      </form>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+
+      <div class="toolbar">
+        <button type="button" id="btn-share" class="ghost">Link kopieren</button>
+        <button type="button" id="btn-copy" class="ghost">Liste kopieren</button>
+        <button type="button" id="btn-clear" class="ghost danger">Alle entfernen</button>
+      </div>
+
+      <div id="groups" class="groups"></div>
+
+      <details class="settings">
+        <summary>Einstellungen</summary>
+        <div class="setting">
+          <label for="min-opacity">Deckkraft ganz reingezoomt: <output id="min-opacity-out"></output></label>
+          <input type="range" id="min-opacity" min="0.05" max="0.8" step="0.05">
+          <small>Ganz rausgezoomt ist die Färbung immer deckend (100 %).</small>
+        </div>
+        <label class="setting check">
+          <input type="checkbox" id="show-dots">
+          <span>Sehr kleine Gebiete beim Rauszoomen zusätzlich als Punkt zeigen</span>
+        </label>
+        <div class="setting">
+          <span class="setting-label">Farben der Staaten</span>
+          <div id="color-settings" class="color-settings"></div>
+          <button type="button" id="btn-reset-colors" class="ghost small">Standardfarben</button>
+        </div>
+        <div class="setting">
+          <label for="google-key">Google Maps API-Key (optional)</label>
+          <input type="text" id="google-key" autocomplete="off" spellcheck="false" placeholder="AIza…">
+          <small>Ohne Key werden die Google-Kacheln direkt geladen. Mit Key nutzt die App die offizielle Google Maps JavaScript API.</small>
+        </div>
+        <p class="source">Grenzen: ABS Postal Areas (ASGS 2021, volle Detailstufe), CC BY 4.0.
+          Zuordnung zu Staaten nach den Nummernbereichen von Australia Post.</p>
+      </details>
+    </div>
+  </aside>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="states.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
