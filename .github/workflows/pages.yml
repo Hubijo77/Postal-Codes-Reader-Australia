@@ -73,10 +73,10 @@ jobs:
           npx -y "$MAPSHAPER" "$input" -proj wgs84 \
             -simplify dp interval=1 keep-shapes \
             -o format=geojson precision=0.000001 poa.geojson
-          # Übersicht für niedrige Zoomstufen: 20 m Toleranz, dort kleiner als ein Pixel.
+          # Übersicht bis Zoomstufe 10: 50 m Toleranz, dort kleiner als ein halber Pixel.
           npx -y "$MAPSHAPER" poa.geojson \
-            -simplify dp interval=20 keep-shapes \
-            -o format=geojson precision=0.00001 poa-overview.geojson
+            -simplify dp interval=50 keep-shapes \
+            -o format=geojson precision=0.0001 poa-overview.geojson
           node ../../scripts/build-data.mjs poa.geojson poa-overview.geojson ../data
 
       - name: Daten prüfen

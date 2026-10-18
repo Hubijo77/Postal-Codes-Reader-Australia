@@ -38,7 +38,7 @@ Statistics in voller Detailstufe (CC BY 4.0). Beim Deploy lädt der Workflow
 `.github/workflows/pages.yml` den offiziellen Datensatz, vereinfacht ihn
 nur mit 1 m Toleranz (sieht auch ganz reingezoomt aus wie das Original) und legt
 pro Postleitzahl eine Datei an. Für niedrige Zoomstufen gibt es zusätzlich eine
-Übersicht mit 20 m Toleranz (dort kleiner als ein Pixel). Ab Zoomstufe 11 lädt
+Übersicht mit 50 m Toleranz (dort kleiner als ein halber Pixel). Ab Zoomstufe 10 lädt
 die App für die sichtbaren Gebiete die vollen Grenzen nach, so bleibt sie auch
 mit Tausenden Postleitzahlen flüssig. Die Zuordnung zu Staaten folgt den
 Nummernbereichen von Australia Post.
@@ -63,7 +63,7 @@ der ABS-Seite „Digital boundary files“ herunterladen und entpacken):
 ```sh
 npx mapshaper POA_2021_AUST_GDA2020.shp -proj wgs84 -simplify dp interval=1 keep-shapes \
   -o format=geojson precision=0.000001 poa.geojson
-npx mapshaper poa.geojson -simplify dp interval=20 keep-shapes \
-  -o format=geojson precision=0.00001 poa-overview.geojson
+npx mapshaper poa.geojson -simplify dp interval=50 keep-shapes \
+  -o format=geojson precision=0.0001 poa-overview.geojson
 node scripts/build-data.mjs poa.geojson poa-overview.geojson data
 ```

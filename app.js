@@ -30,9 +30,9 @@
   const ZOOM_OPAQUE = 5;
   const ZOOM_CLEAR = 15;
 
-  // Unterhalb dieser Zoomstufe reicht die Übersichtsgeometrie (20 m Toleranz, kleiner als
-  // ein Bildschirmpixel). Ab hier werden für sichtbare Gebiete die vollen Grenzen geladen.
-  const DETAIL_ZOOM = 11;
+  // Unterhalb dieser Zoomstufe reicht die Übersichtsgeometrie (50 m Toleranz, kleiner als
+  // ein halber Bildschirmpixel). Ab hier werden für sichtbare Gebiete die vollen Grenzen geladen.
+  const DETAIL_ZOOM = 10;
   // So viele Detailgeometrien außerhalb des Ausschnitts dürfen im Speicher bleiben.
   const MAX_DETAIL = 250;
 
