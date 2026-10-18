@@ -117,3 +117,17 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Veröffentlichte Seite prüfen
+        env:
+          URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          for path in "" app.js data/index.json data/overview/2.json data/poa/2000.json; do
+            for i in 1 2 3 4 5 6; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' "${URL}${path}")
+              [ "$code" = 200 ] && break
+              sleep 10
+            done
+            echo "${URL}${path} -> $code"
+            test "$code" = 200
+          done
